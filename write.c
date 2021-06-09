@@ -28,6 +28,7 @@ int enable_and_reset_display(struct sp_port *port) {
   }
   sleep(1);
 
+  SDL_Log("M8 Display Enable Successful");
   return 1;
 }
 
@@ -56,19 +57,4 @@ int send_msg_controller(struct sp_port *port, uint8_t input) {
   }
   return 1;
 
-}
-
-int send_msg_keyjazz(struct sp_port *port, uint8_t note, uint8_t velocity) {
-  if (velocity > 64)
-    velocity = 64;
-  char buf[3] = {'K',note,velocity};
-  size_t nbytes = 3;
-  int result;
-  result = sp_blocking_write(port, buf, nbytes,5);
-  if (result != nbytes) {
-    SDL_LogError(SDL_LOG_CATEGORY_SYSTEM, "Error sending keyjazz, code %d", result);
-    return -1;
-  }
-
-  return 1;
 }

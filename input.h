@@ -8,7 +8,6 @@
 
 typedef enum input_type_t {
   normal,
-  keyjazz,
   special
 } input_type_t;
 

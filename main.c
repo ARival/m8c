@@ -12,17 +12,19 @@
 #include "serial.h"
 #include "slip.h"
 #include "write.h"
-
+//
 // maximum amount of bytes to read from the serial in one read()
 #define serial_read_size 1024
 
 uint8_t run = 1;
+uint16_t counter = 0;
 
 // Handles CTRL+C / SIGINT
 void intHandler(int dummy) { run = 0; }
 
 int main(int argc, char *argv[]) {
 
+  printf("0");
   // allocate memory for serial buffer
   uint8_t *serial_buf = malloc(serial_read_size);
 
@@ -35,14 +37,17 @@ int main(int argc, char *argv[]) {
       .recv_message = process_command, // the function where complete slip
                                        // packets are processed further
   };
+  printf("1");
 
   static slip_handler_s slip;
 
   signal(SIGINT, intHandler);
   signal(SIGTERM, intHandler);
 
+  printf("2");
   slip_init(&slip, &slip_descriptor);
 
+  printf("3");
   struct sp_port *port;
 
   port = init_serial();
@@ -52,13 +57,16 @@ int main(int argc, char *argv[]) {
   if (enable_and_reset_display(port) == -1)
     run = 0;
 
+
   if (initialize_sdl() == -1)
     run = 0;
 
+  printf("4");
   uint8_t prev_input = 0;
 
   // main loop
-  while (run) {
+  while (run && counter < 3000) {
+	  counter++;
 
     // get current inputs
     input_msg_s input = get_input_msg();
@@ -68,16 +76,6 @@ int main(int argc, char *argv[]) {
       if (input.value != prev_input) {
         prev_input = input.value;
         send_msg_controller(port, input.value);
-      }
-      break;
-    case keyjazz:
-      if (input.value != prev_input) {
-        prev_input = input.value;
-        if (input.value != 0) {
-          send_msg_keyjazz(port, input.value, 0xFF);
-        } else {
-          send_msg_keyjazz(port, 0, 0);
-        }
       }
       break;
     case special:
@@ -97,12 +95,15 @@ int main(int argc, char *argv[]) {
       run = 0;
     }
     if (bytes_read > 0) {
+	  //printf("bytes read = %lu\n", bytes_read);
+	  //SDL_Log("bytes read = %lu\n", bytes_read);
       for (int i = 0; i < bytes_read; i++) {
         uint8_t rx = serial_buf[i];
         // process the incoming bytes into commands and draw them
         int n = slip_read_byte(&slip, rx);
         if (n != SLIP_NO_ERROR) {
           SDL_LogError(SDL_LOG_CATEGORY_ERROR, "SLIP error %d\n", n);
+	  printf("slip error");
         }
       }
       usleep(10);
@@ -110,11 +111,10 @@ int main(int argc, char *argv[]) {
       render_screen();
       usleep(100);
     }
-    
   }
 
   // exit, clean up
-  SDL_Log("Shutting down\n");
+  printf("Shutting down\n");
   close_game_controllers();
   close_renderer();
   disconnect(port);
@@ -124,3 +124,4 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+

@@ -16,6 +16,5 @@ int draw_character(struct draw_character_command *command);
 
 void render_screen();
 void toggle_fullscreen();
-void display_keyjazz_overlay(uint8_t show, uint8_t base_octave);
 
 #endif

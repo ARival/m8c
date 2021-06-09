@@ -17,6 +17,7 @@ SDL_Renderer *rend;
 SDL_Texture *maintexture;
 SDL_Color background_color = (SDL_Color){0, 0, 0, 0};
 
+SDL_Rect rect; 
 static uint32_t ticks;
 #ifdef SHOW_FPS
 static uint32_t ticks_fps;
@@ -65,14 +66,6 @@ void close_renderer() {
   SDL_DestroyTexture(maintexture);
   SDL_DestroyRenderer(rend);
   SDL_DestroyWindow(win);
-}
-
-void toggle_fullscreen() {
-
-  int fullscreen_state = SDL_GetWindowFlags(win) & SDL_WINDOW_FULLSCREEN;
-
-  SDL_SetWindowFullscreen(win, fullscreen_state ? 0 : SDL_WINDOW_FULLSCREEN);
-  SDL_ShowCursor(fullscreen_state);
 }
 
 int draw_character(struct draw_character_command *command) {
@@ -198,3 +191,4 @@ void render_screen() {
 #endif
   }
 }
+
