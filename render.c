@@ -30,23 +30,26 @@ int initialize_sdl() {
 
   ticks = SDL_GetTicks();
 
-  const int window_width = 640;  // SDL window width
-  const int window_height = 480; // SDL window height
+  const int window_width = 480;  // SDL window width
+  const int window_height = 320; // SDL window height
+
+  rect.x = 0; rect.y = 0;
+  rect.w = 320; rect.h = 240;
 
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
     SDL_LogCritical(SDL_LOG_CATEGORY_ERROR, "SDL_Init: %s\n", SDL_GetError());
     return -1;
   }
 
-  win = SDL_CreateWindow("m8c", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+  win = SDL_CreateWindow("m8c", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                          window_width, window_height,
-                         SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL |
-                             SDL_WINDOW_RESIZABLE);
+                         SDL_WINDOW_FULLSCREEN_DESKTOP);
 
-  rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
+  rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
 
   SDL_RenderSetLogicalSize(rend, 320, 240);
 
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"linear");
   maintexture = SDL_CreateTexture(rend, SDL_PIXELFORMAT_ARGB8888,
                                   SDL_TEXTUREACCESS_TARGET, 320, 240);
 
@@ -135,46 +138,13 @@ void draw_waveform(struct draw_oscilloscope_waveform_command *command) {
   SDL_RenderDrawPoints(rend, waveform_points, command->waveform_size);
 }
 
-void display_keyjazz_overlay(uint8_t show, uint8_t base_octave) {
-
-  if (show) {
-    struct draw_rectangle_command drc;
-    drc.color = (struct color){255, 0, 0};
-    drc.pos.x = 310;
-    drc.pos.y = 230;
-    drc.size.width = 5;
-    drc.size.height = 5;
-
-    draw_rectangle(&drc);
-
-    struct draw_character_command dcc;
-    dcc.background = (struct color){0, 0, 0};
-    dcc.foreground = (struct color){200, 200, 200};
-    dcc.c = base_octave + 48;
-    dcc.pos.x = 300;
-    dcc.pos.y = 226;
-
-    draw_character(&dcc);
-
-  } else {
-    struct draw_rectangle_command drc;
-    drc.color = (struct color){0, 0, 0};
-    drc.pos.x = 300;
-    drc.pos.y = 226;
-    drc.size.width = 20;
-    drc.size.height = 14;
-
-    draw_rectangle(&drc);
-  }
-}
-
 void render_screen() {
 
   // process every 16ms (roughly 60fps)
   if (SDL_GetTicks() - ticks > 15) {
     ticks = SDL_GetTicks();
     SDL_SetRenderTarget(rend, NULL);
-    SDL_SetRenderDrawColor(rend, 0, 0, 0, 0);
+    SDL_SetRenderDrawColor(rend, 0, 0x00, 0, 0x00);
     SDL_RenderClear(rend);
     SDL_RenderCopy(rend, maintexture, NULL, NULL);
     SDL_RenderPresent(rend);

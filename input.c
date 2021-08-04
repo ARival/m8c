@@ -11,9 +11,11 @@
 #include "write.h"
 
 #define MAX_CONTROLLERS 4
+#define JOYSTICK_INDEX(Joystick) SDL_JoystickInstanceID(Joystick)
 
 SDL_GameController *game_controllers[MAX_CONTROLLERS];
 
+SDL_Joystick* BuiltInJS = 0; 
 // Bits for M8 input messages
 enum keycodes {
   key_left = 1 << 7,
@@ -39,29 +41,30 @@ int initialize_game_controllers() {
   SDL_Log("Looking for game controllers\n");
   SDL_Delay(1); // Some controllers like XBone wired need a little while to get ready
   // Open all available game controllers
+  /*
   for (int i = 0; i < num_joysticks; i++) {
     if (!SDL_IsGameController(i))
       continue;
     if (controller_index >= MAX_CONTROLLERS)
       break;
-    game_controllers[controller_index] = SDL_GameControllerOpen(i);
+    game_controllers[controller_index] = SDL_JoystickOpen(i);
     SDL_Log("Controller %d: %s",controller_index+1,SDL_GameControllerName(game_controllers[controller_index]));
     controller_index++;
   }
+  */
 
   // Read controller mapping database
-  SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt");
+  //SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt");
 
+  SDL_JoystickEventState(SDL_ENABLE);
+  BuiltInJS = SDL_JoystickOpen(0);
   return controller_index;
 }
 
 // Closes all open game controllers
 void close_game_controllers() {
 
-  for (int i = 0; i < MAX_CONTROLLERS; i++) {
-    if (game_controllers[i])
-      SDL_GameControllerClose(game_controllers[i]);
-  }
+  SDL_JoystickClose(0);
 }
 
 static input_msg_s handle_normal_keys(SDL_Event *event, uint8_t keyvalue) {
@@ -115,47 +118,63 @@ static input_msg_s handle_normal_keys(SDL_Event *event, uint8_t keyvalue) {
   return key;
 }
 
-static input_msg_s handle_game_controller_buttons(SDL_Event *event,
+/*
+enum Element JoyButtonsToElements[] = {
+	ELEMENT_A,
+	ELEMENT_B,
+	ELEMENT_Y,
+	ELEMENT_X,
+	ELEMENT_L1,
+	ELEMENT_R1,
+	ELEMENT_START,
+	ELEMENT_SELECT,
+	ELEMENT_L3,
+	ELEMENT_R3,
+	ELEMENT_L2,
+	ELEMENT_R2,
+};
+*/
+
+static input_msg_s handle_joystick_buttons(SDL_Event *event,
                                                   uint8_t keyvalue) {
   input_msg_s key = {normal, keyvalue};
-  switch (event->cbutton.button) {
+  if (event->type == SDL_JOYHATMOTION && event->jhat.hat == 0) {
+	if (event->jhat.value & SDL_HAT_UP) key.value = key_up;
+	if (event->jhat.value & SDL_HAT_DOWN) key.value = key_down;
+	if (event->jhat.value & SDL_HAT_LEFT) key.value = key_left;
+	if (event->jhat.value & SDL_HAT_RIGHT) key.value = key_right;
+  } else {
 
-  case SDL_CONTROLLER_BUTTON_DPAD_UP:
-    key.value = key_up;
-    break;
+  switch (event->jbutton.button) {
+	  case 10:
+	    key.type = special;
+	    key.value = msg_quit;
 
-  case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-    key.value = key_down;
-    break;
+	  case 3:
+	  case 5:
+	  case 7:
+	    key.value = key_select;
+	    break;
 
-  case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-    key.value = key_left;
-    break;
+	  case 2:
+	  case 6:
+	    key.value = key_start;
+	    break;
 
-  case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-    key.value = key_right;
-    break;
+	  case 0:
+	    key.value = key_edit;
+	    break;
 
-  case SDL_CONTROLLER_BUTTON_BACK:
-    key.value = key_select;
-    break;
+	  case 1:
+	    key.value = key_opt;
+	    break;
 
-  case SDL_CONTROLLER_BUTTON_START:
-    key.value = key_start;
-    break;
-
-  case SDL_CONTROLLER_BUTTON_B:
-    key.value = key_edit;
-    break;
-
-  case SDL_CONTROLLER_BUTTON_A:
-    key.value = key_opt;
-    break;
-
-  default:
-    key.value = 0;
-    break;
+	  default:
+	    key.value = 0;
+	    break;
+	  }
   }
+ // printf("%d\n", key.value);
 
   return key;
 }
@@ -166,6 +185,10 @@ void handle_sdl_events() {
   SDL_Event event;
 
   SDL_PollEvent(&event);
+
+  if (BuiltInJS == NULL) {
+	  initialize_game_controllers();
+  }
 
   switch (event.type) {
 
@@ -195,19 +218,25 @@ void handle_sdl_events() {
     key = handle_normal_keys(&event, 0);
 
   // Game controller events
-  case SDL_CONTROLLERBUTTONDOWN:
-  case SDL_CONTROLLERBUTTONUP:
-    key = handle_game_controller_buttons(&event, 0);
+  case SDL_JOYBUTTONDOWN:
+  case SDL_JOYBUTTONUP:
+  case SDL_JOYHATMOTION:
+	    key = handle_joystick_buttons(&event, 0);
     break;
 
   default:
     break;
   }
 
+
   if (key.type == normal) {
-    if (event.type == SDL_KEYDOWN || event.type == SDL_CONTROLLERBUTTONDOWN)
+    if (event.type == SDL_KEYDOWN || event.type == SDL_JOYBUTTONDOWN) 
       keycode |= key.value;
-    else
+    else if (event.type == SDL_JOYHATMOTION) {
+	  uint8_t maskedValue = key.value & 228;
+	  keycode &= 27;
+	  keycode |= maskedValue;
+    } else
       keycode &= ~key.value;
   } else {
     if (event.type == SDL_KEYDOWN)

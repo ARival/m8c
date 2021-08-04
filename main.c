@@ -17,14 +17,12 @@
 #define serial_read_size 1024
 
 uint8_t run = 1;
-uint16_t counter = 0;
 
 // Handles CTRL+C / SIGINT
 void intHandler(int dummy) { run = 0; }
 
 int main(int argc, char *argv[]) {
 
-  printf("0");
   // allocate memory for serial buffer
   uint8_t *serial_buf = malloc(serial_read_size);
 
@@ -37,36 +35,35 @@ int main(int argc, char *argv[]) {
       .recv_message = process_command, // the function where complete slip
                                        // packets are processed further
   };
-  printf("1");
 
   static slip_handler_s slip;
 
   signal(SIGINT, intHandler);
   signal(SIGTERM, intHandler);
 
-  printf("2");
   slip_init(&slip, &slip_descriptor);
 
-  printf("3");
   struct sp_port *port;
 
   port = init_serial();
   if (port == NULL)
     return -1;
 
-  if (enable_and_reset_display(port) == -1)
+  if (enable_and_reset_display(port) == -1){
+	printf("displayport failure");
     run = 0;
+  }
 
 
-  if (initialize_sdl() == -1)
+  if (initialize_sdl() == -1) {
+	printf("sdl failure");
     run = 0;
+  }
 
-  printf("4");
   uint8_t prev_input = 0;
 
   // main loop
-  while (run && counter < 3000) {
-	  counter++;
+  while (run){
 
     // get current inputs
     input_msg_s input = get_input_msg();
@@ -95,8 +92,6 @@ int main(int argc, char *argv[]) {
       run = 0;
     }
     if (bytes_read > 0) {
-	  //printf("bytes read = %lu\n", bytes_read);
-	  //SDL_Log("bytes read = %lu\n", bytes_read);
       for (int i = 0; i < bytes_read; i++) {
         uint8_t rx = serial_buf[i];
         // process the incoming bytes into commands and draw them
