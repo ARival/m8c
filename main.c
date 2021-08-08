@@ -17,6 +17,7 @@
 #define serial_read_size 1024
 
 uint8_t run = 1;
+uint8_t need_display_reset = 0;
 
 // Handles CTRL+C / SIGINT
 void intHandler(int dummy) { run = 0; }
@@ -76,13 +77,21 @@ int main(int argc, char *argv[]) {
       }
       break;
     case special:
-      switch (input.value) {
-      case msg_quit:
-        run = 0;
+      if (input.value != prev_input) {
+        prev_input = input.value;
+        switch (input.value) {
+        case msg_quit:
+          run = 0;
+          break;
+        case msg_reset_display:
+          reset_display(port);
+          break;
+        default:
+          break;
+        }
         break;
       }
-      break;
-    }    
+    }
 
     // read serial port
     size_t bytes_read = sp_nonblocking_read(port, serial_buf, serial_read_size);
@@ -97,8 +106,12 @@ int main(int argc, char *argv[]) {
         // process the incoming bytes into commands and draw them
         int n = slip_read_byte(&slip, rx);
         if (n != SLIP_NO_ERROR) {
-          SDL_LogError(SDL_LOG_CATEGORY_ERROR, "SLIP error %d\n", n);
-	  printf("slip error");
+          if (n == SLIP_ERROR_INVALID_PACKET) {
+            // Reset display on invalid packets. On current firmwares this can cause a softlock in effect list so this is commented out for now.
+            //reset_display(port);
+          } else {
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "SLIP error %d\n", n);
+          }
         }
       }
       usleep(10);
@@ -119,4 +132,7 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/main

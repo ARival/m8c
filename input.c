@@ -2,8 +2,6 @@
 // Released under the MIT licence, https://opensource.org/licenses/MIT
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_gamecontroller.h>
 #include <stdio.h>
 
 #include "input.h"
@@ -39,7 +37,8 @@ int initialize_game_controllers() {
   int controller_index = 0;
 
   SDL_Log("Looking for game controllers\n");
-  SDL_Delay(1); // Some controllers like XBone wired need a little while to get ready
+  SDL_Delay(
+      1); // Some controllers like XBone wired need a little while to get ready
   // Open all available game controllers
   /*
   for (int i = 0; i < num_joysticks; i++) {
@@ -47,8 +46,9 @@ int initialize_game_controllers() {
       continue;
     if (controller_index >= MAX_CONTROLLERS)
       break;
-    game_controllers[controller_index] = SDL_JoystickOpen(i);
-    SDL_Log("Controller %d: %s",controller_index+1,SDL_GameControllerName(game_controllers[controller_index]));
+    game_controllers[controller_index] = SDL_GameControllerOpen(i);
+    SDL_Log("Controller %d: %s", controller_index + 1,
+            SDL_GameControllerName(game_controllers[controller_index]));
     controller_index++;
   }
   */
@@ -109,6 +109,10 @@ static input_msg_s handle_normal_keys(SDL_Event *event, uint8_t keyvalue) {
 
   case SDL_SCANCODE_DELETE:
     key.value = key_opt | key_edit;
+    break;
+
+  case SDL_SCANCODE_R:
+    key = (input_msg_s){special, msg_reset_display};
     break;
 
   default:

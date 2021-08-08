@@ -12,6 +12,28 @@
 
 ## Linux / Raspberry Pi
 
+### Pulseaudio
+
+If you have a desktop installation, chances are you're using Pulseaudio which has a module for making an internal loopback.
+
+run the following command in terminal:
+
+```
+pacmd load-module module-loopback latency_msec=1
+```
+
+after that, you should hear audio through your default input device. If not, check Input devices in Pulseaudio Volume Control
+```
+pavucontrol
+```
+
+If the tools are missing, install pavucontrol (Debian based systems):
+```
+apt install pavucontrol
+```
+
+### JACK
+
 It is possible to route the M8 USB audio to another audio interface in Linux without a DAW, using JACK Audio Connection kit and a few other command line tools.
 
 Please note that this is not an optimal solution for getting audio from the headless M8, but as far as I know the easiest way to use the USB audio feature on Linux. The best parameters for running the applications can vary a lot depending on your configuration, and however you do it, there will be some latency.
@@ -22,9 +44,11 @@ These instructions were written for Raspberry PI OS desktop using a Raspberry Pi
 
 Open Terminal and run the commands below to setup the system.
 
-## First time setup
+-----
 
-### Install JACK Audio Connection Kit 
+#### First time setup
+
+#### Install JACK Audio Connection Kit 
 
 The jackd2 package will provide the basic tools that make the audio patching possible. 
 
@@ -32,7 +56,7 @@ The jackd2 package will provide the basic tools that make the audio patching pos
 sudo apt install jackd2
 ```
 
-### Add your user to the audio group
+#### Add your user to the audio group
 
 This is required to get real time priority for the JACK process.
 
@@ -42,7 +66,9 @@ sudo usermod -a -G audio $USER
 
 You need to log out completely or reboot for this change to take effect.
 
-### Find your audio interface ALSA device id
+-----
+
+#### Find your audio interface ALSA device id
 
 Use the ```aplay -l``` command to list the audio devices present in the system.
 
@@ -75,7 +101,7 @@ Take note of the card number you wish to use. In my case, I want to use card  3:
 
 After these steps have been taken care of, we can try to route some audio.
 
-## Start JACK server and route audio
+#### Start JACK server and route audio
 ```
 jackd -d alsa -d hw:M8 -r44100 -p512 &
 ```
@@ -109,7 +135,7 @@ If you wish to shut down the applications, you can do that by sending a interrup
 ```killall -s SIGINT jackd alsa_out```
 
 
-## TL;DR
+#### TL;DR
 Run these in Terminal:
 
 ```
