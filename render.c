@@ -30,8 +30,8 @@ int initialize_sdl() {
 
   ticks = SDL_GetTicks();
 
-  const int window_width = 480;  // SDL window width
-  const int window_height = 320; // SDL window height
+  const int window_width = 320;  // SDL window width
+  const int window_height = 240; // SDL window height
 
   rect.x = 0; rect.y = 0;
   rect.w = 320; rect.h = 240;
@@ -41,15 +41,16 @@ int initialize_sdl() {
     return -1;
   }
 
-  win = SDL_CreateWindow("m8c", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+  win = SDL_CreateWindow("m8c", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                          window_width, window_height,
-                         SDL_WINDOW_FULLSCREEN_DESKTOP);
+                         SDL_WINDOW_OPENGL);
 
   rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
+  //SDL_RenderSetIntegerScale(rend, SDL_TRUE);
 
   SDL_RenderSetLogicalSize(rend, 320, 240);
 
-  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"linear");
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,0);
   maintexture = SDL_CreateTexture(rend, SDL_PIXELFORMAT_ARGB8888,
                                   SDL_TEXTUREACCESS_TARGET, 320, 240);
 

@@ -138,17 +138,32 @@ enum Element JoyButtonsToElements[] = {
 static input_msg_s handle_joystick_buttons(SDL_Event *event,
                                                   uint8_t keyvalue) {
   input_msg_s key = {normal, keyvalue};
+  /*
   if (event->type == SDL_JOYHATMOTION && event->jhat.hat == 0) {
 	if (event->jhat.value & SDL_HAT_UP) key.value = key_up;
 	if (event->jhat.value & SDL_HAT_DOWN) key.value = key_down;
 	if (event->jhat.value & SDL_HAT_LEFT) key.value = key_left;
 	if (event->jhat.value & SDL_HAT_RIGHT) key.value = key_right;
   } else {
+  */
 
   switch (event->jbutton.button) {
+	  case 8:
+            key.value = key_up;
+	    break;
 	  case 10:
+            key.value = key_left;
+	    break;
+	  case 11:
+            key.value = key_right;
+	    break;
+	  case 9:
+            key.value = key_down;
+	    break;
+	  case 6:
 	    key.type = special;
 	    key.value = msg_quit;
+	    break;
 
 	  case 3:
 	  case 5:
@@ -157,15 +172,15 @@ static input_msg_s handle_joystick_buttons(SDL_Event *event,
 	    break;
 
 	  case 2:
-	  case 6:
+	  case 13:
 	    key.value = key_start;
 	    break;
 
-	  case 0:
+	  case 1:
 	    key.value = key_edit;
 	    break;
 
-	  case 1:
+	  case 0:
 	    key.value = key_opt;
 	    break;
 
@@ -173,7 +188,7 @@ static input_msg_s handle_joystick_buttons(SDL_Event *event,
 	    key.value = 0;
 	    break;
 	  }
-  }
+  //}
  // printf("%d\n", key.value);
 
   return key;

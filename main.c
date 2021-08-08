@@ -50,13 +50,13 @@ int main(int argc, char *argv[]) {
     return -1;
 
   if (enable_and_reset_display(port) == -1){
-	printf("displayport failure");
+	printf("displayport failure\n");
     run = 0;
   }
 
 
   if (initialize_sdl() == -1) {
-	printf("sdl failure");
+	printf("sdl failure\n");
     run = 0;
   }
 
