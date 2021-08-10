@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
       }
       break;
     case special:
-      if (input.value != prev_input) {
+      //if (input.value != prev_input) {
         prev_input = input.value;
         switch (input.value) {
         case msg_quit:
@@ -87,10 +87,11 @@ int main(int argc, char *argv[]) {
           reset_display(port);
           break;
         default:
+	  SDL_Log("oops! %d", input.value);
           break;
         }
         break;
-      }
+      //}
     }
 
     // read serial port

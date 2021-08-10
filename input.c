@@ -193,7 +193,7 @@ static input_msg_s handle_joystick_buttons(SDL_Event *event,
 	    break;
 	  }
   //}
- // printf("%d\n", key.value);
+  SDL_Log("%d\n", key.value);
 
   return key;
 }
@@ -258,7 +258,7 @@ void handle_sdl_events() {
     } else
       keycode &= ~key.value;
   } else {
-    if (event.type == SDL_KEYDOWN)
+    if (event.type == SDL_KEYDOWN || key.type == special)
       keycode = key.value;
     else
       keycode = 0;

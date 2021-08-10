@@ -25,15 +25,17 @@ static int fps;
 #endif
 uint8_t fullscreen = 0;
 
+  int window_width = 427;  // SDL window width
+  int window_height = 240; // SDL window height
 // Initializes SDL and creates a renderer and required surfaces
 int initialize_sdl() {
 
   ticks = SDL_GetTicks();
 
-  const int window_width = 320;  // SDL window width
-  const int window_height = 240; // SDL window height
+  const int offset = 53;
+  
 
-  rect.x = 0; rect.y = 0;
+  rect.x = 53; rect.y = 0;
   rect.w = 320; rect.h = 240;
 
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -46,9 +48,8 @@ int initialize_sdl() {
                          SDL_WINDOW_OPENGL);
 
   rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
-  //SDL_RenderSetIntegerScale(rend, SDL_TRUE);
 
-  SDL_RenderSetLogicalSize(rend, 320, 240);
+  SDL_RenderSetLogicalSize(rend, 427, 240);
 
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,0);
   maintexture = SDL_CreateTexture(rend, SDL_PIXELFORMAT_ARGB8888,
@@ -109,6 +110,7 @@ void draw_rectangle(struct draw_rectangle_command *command) {
     background_color.a = 0xFF;
   }
 
+
   SDL_SetRenderDrawColor(rend, command->color.r, command->color.g,
                          command->color.b, 0xFF);
   SDL_RenderFillRect(rend, &render_rect);
@@ -145,9 +147,9 @@ void render_screen() {
   if (SDL_GetTicks() - ticks > 15) {
     ticks = SDL_GetTicks();
     SDL_SetRenderTarget(rend, NULL);
-    SDL_SetRenderDrawColor(rend, 0, 0x00, 0, 0x00);
+    SDL_SetRenderDrawColor(rend, background_color.r, background_color.g, background_color.b, background_color.a);
     SDL_RenderClear(rend);
-    SDL_RenderCopy(rend, maintexture, NULL, NULL);
+    SDL_RenderCopy(rend, maintexture, NULL, &rect);
     SDL_RenderPresent(rend);
     SDL_SetRenderTarget(rend, maintexture);
 
